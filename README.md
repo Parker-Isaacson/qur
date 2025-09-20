@@ -241,9 +241,11 @@ Following section is currently theoretical.
 
 ### Binary options 
 
-`$ qur -c (--compile) file.qur` outputs `file` as an executable
+`$ qur [-c (--compile)] file.qur` outputs `file` as an executable
 
 `$ qur -p (--transpile) file.qur` outputs `file.c`
+
+`$ qur -o (--out) file` sets the output file
 
 `$ qur -d (--download) lib` downloads a library, and stores in the default library location
 

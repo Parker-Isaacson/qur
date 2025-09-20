@@ -1,1 +1,8 @@
+# VSCODE
 .vscode/*
+
+# Built executable
+qur.exe
+
+# Testing files
+file
