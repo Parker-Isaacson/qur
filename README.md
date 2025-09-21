@@ -20,6 +20,9 @@ fn int: main(int: argc, string[]) { return 0; };
 | boolean | bool |
 | char | char |
 | string | std::string |
+| list | std::vector |
+| tuple | std::tuple |
+| dict | std::map |
 | type | template\<typename T\> | Allows for user defined types. |
 
 ```qur
@@ -66,7 +69,6 @@ fn int: main() {
 | & | && | Logical / Bitwise | and |
 | \| | \|\| | Logical / Bitwise | or |
 | ~ | ~ | Bitwise | invert |
-| ^ | ^ | Bitwise | exclusive or |
 
 ### if, elif, else
 
@@ -91,7 +93,6 @@ fn int: main() {
 Loops are declared in the similar method as you would in C. Must be closed with a `;`. Variables declared inside the `for` are scoped to only be inside the next bracket set.
 
 ```qur
-import list;
 fn int: main() {
     // Conditional for loop
     // Variable; Condition; Step;
@@ -123,14 +124,6 @@ fn int: func() { return 0; };
 fn: func() {};
 ```
 
-Arguments to functions must have a type, or can be pass by reference. They can also be optional if a value is provided by default. Pass by reference cannot have a default.
-
-```qur
-import reference; // for ref()
-// arg1 is pass by reference, arg2 is pass value with a default of 0
-fn int: func(ref(int): arg1, int: arg2 = 0) {return 0;};
-```
-
 Operators are required to have at least 1 argument and a return type. With only 1 the value is taken from the right of it, think `! true`. With 2 arguments they are from the left and right, think `0 != 1`. Customer operator functions can be defined with the `op` keyword, the custom operator must be surrounded by \` the insides can be any character set.
 
 ```qur
@@ -148,7 +141,7 @@ fn main() {
 
 ### Default Libraries
 
-`io` is a library that provides input for input and output to the command line.
+`io` is a library that provides input for input and output to the command line, though is not essential to import for `print` or `read`, though it will allow for more advanced file io, and control over the cli.
 
 ```qur
 import io;
@@ -166,13 +159,9 @@ fn int: main() {
 };
 ```
 
-`list`, `tuple`, `dict` are libraries that must be imported. `list` and `dict` are mutable, `tuple` has mutable values but immutable size. `list` and `tuple` are zero indexed, and use `[]` and `()` respectively. A size can be provided to `list` as shown below, but is not needed. A size must be provided to `tuple` as shown below. `list` and `dict` are dynamically sized. 
+`list`, `tuple`, `dict` are included by default, though can be imported for brevity. `list` and `dict` are mutable, `tuple` has mutable values but immutable size. `list` and `tuple` are zero indexed, and use `[]` and `()` respectively. A size can be provided to `list` as shown below, but is not needed. A size must be provided to `tuple` as shown below. `list` and `dict` are dynamically sized. 
 
 ```qur
-import list;
-import tuple;
-import dict;
-
 fn int: main() {
     // List size does not need to be provided.
     list: myList(int, 3) = [1, 2, 3]; // myList[1] == 2
@@ -184,7 +173,7 @@ fn int: main() {
 
 ### Imports
 
-Importing libraries are essential, done simply with the `import` keyword during the files header. This will import all functions, classes, and interfaces. If the library is not found in the default library location, what is input will be treaded as a relative path from where the source file is. Imports do fall down, for instance if `myLib` imports `list` then the following will also have `list`.
+Importing libraries are essential, done simply with the `import` keyword during the files header. This will import all functions, classes, and interfaces. If the library is not found in the default library location, what is input will be treaded as a relative path from where the source file is. Imports do cascade through files, for instance if `myLib` imports `list` then the following will also have `list`.
 
 ```qur
 import ./myLib; // Assume this has func1()
@@ -194,6 +183,33 @@ fn int: main() {
     return res;
 };
 ```
+
+
+# TODO: ALL BELOW
+
+Following section is currently theoretical.
+
+### Binary options 
+
+`$ qur [-c (--compile)] file.qur` outputs `file` as an executable
+
+`$ qur -o (--out) file` sets the output file
+
+`$ qur -d (--download) lib` downloads a library, and stores in the default library location
+
+`$ qur -h (-?, --help)` prints help
+
+## Possible additions
+
+- class
+- interfaces
+- structs
+- enumerations
+- unions
+- switch
+- error handling
+- Concurrency primitives ( threads, async, atomic, mutex / locks)
+- system functions
 
 ### Classes, Objects, Interfaces
 
@@ -233,30 +249,3 @@ fn int: main() {
     return 0;
 };
 ```
-
-
-# TODO: ALL BELOW
-
-Following section is currently theoretical.
-
-### Binary options 
-
-`$ qur [-c (--compile)] file.qur` outputs `file` as an executable
-
-`$ qur -p (--transpile) file.qur` outputs `file.c`
-
-`$ qur -o (--out) file` sets the output file
-
-`$ qur -d (--download) lib` downloads a library, and stores in the default library location
-
-`$ qur -h (-?, --help)` prints help
-
-## Possible additions
-
-- structs
-- enumerations
-- unions
-- switch
-- error handling
-- Concurrency primitives ( threads, async, atomic, mutex / locks)
-- system functions
