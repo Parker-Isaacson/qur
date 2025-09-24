@@ -1,6 +1,9 @@
 # VSCODE
 .vscode/*
 
+# CLION
+.idea/*
+
 # Built executable
 qur.exe
 qur

@@ -12,17 +12,17 @@ fn int main(int argc, string[] argv) { return 0; };
 
 ### Primitive Variable Types
 
-| qur | C++ | Notes |
-| :--- | :--- | :--- |
-| int | int | Not supported in an `if`, check value literally. |
-| double | double | Not supported in an `if`, check value literally. |
-| boolean | bool |
-| char | char |
-| string | std::string |
-| list | std::vector |
-| tuple | std::tuple |
-| dict | std::map |
-| type | template\<typename T\> | Allows for user defined types. |
+| qur     | C++                    | Notes                                            |
+|:--------|:-----------------------|:-------------------------------------------------|
+| int     | int                    | Not supported in an `if`, check value literally. |
+| double  | double                 | Not supported in an `if`, check value literally. |
+| boolean | bool                   |
+| char    | char                   |
+| string  | std::string            |
+| list    | std::vector            |
+| tuple   | std::tuple             |
+| dict    | std::map               |
+| type    | template\<typename T\> | Allows for user defined types.                   |
 
 ```qur
 fn int main() {
@@ -49,25 +49,25 @@ fn int main() {
 
 ### Default Operators
 
-| qur | C++ | Type | Usage |
-| :--- | :--- | :--- | :--- |
-| = | = | Assignment | set |
-| -> | : | Assignment | for each |
-| + | + | Arithmetic | addition |
-| - | - | Arithmetic | subtraction |
-| * | * | Arithmetic | multiplication |
-| / | / | Arithmetic | division |
-| % | % | Arithmetic | modulo |
-| < | < | Relational | less than |
-| > | > | Relational | greater than |
-| <= | <= | Relational | less than or equal to |
-| >= | >= | Relational | greater than or equal to |
-| == | == | Relational | equal to |
-| != | != | Relational | not equal to |
-| ! | ! | Logical | not |
-| & | && | Logical / Bitwise | and |
-| \| | \|\| | Logical / Bitwise | or |
-| ~ | ~ | Bitwise | invert |
+| qur | C++  | Type              | Usage                    |
+|:----|:-----|:------------------|:-------------------------|
+| =   | =    | Assignment        | set                      |
+| ->  | :    | Assignment        | for each                 |
+| +   | +    | Arithmetic        | addition                 |
+| -   | -    | Arithmetic        | subtraction              |
+| *   | *    | Arithmetic        | multiplication           |
+| /   | /    | Arithmetic        | division                 |
+| %   | %    | Arithmetic        | modulo                   |
+| <   | <    | Relational        | less than                |
+| >   | >    | Relational        | greater than             |
+| <=  | <=   | Relational        | less than or equal to    |
+| >=  | >=   | Relational        | greater than or equal to |
+| ==  | ==   | Relational        | equal to                 |
+| !=  | !=   | Relational        | not equal to             |
+| !   | !    | Logical           | not                      |
+| &   | &&   | Logical / Bitwise | and                      |
+| \|  | \|\| | Logical / Bitwise | or                       |
+| ~   | ~    | Bitwise           | invert                   |
 
 ### if, elif, else
 
@@ -172,7 +172,7 @@ fn int main() {
 
 ### Imports
 
-Importing libraries are essential, done simply with the `import` keyword during the files header. This will import all functions, classes, and interfaces. If the library is not found in the default library location, what is input will be treaded as a relative path from where the source file is. Imports do cascade through files, for instance if `myLib` imports `list` then the following will also have `list`.
+Importing libraries are essential, done simply with the `import` keyword during the file header. This will import all functions, classes, and interfaces. If the library is not found in the default library location, what is input will be treated as a relative path from where the source file is. Imports do cascade through files, for instance if `myLib` imports `list` then the following will also have `list`.
 
 ```qur
 import ./myLib; // Assume this has func1()

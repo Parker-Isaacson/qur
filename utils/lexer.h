@@ -22,7 +22,16 @@ enum class TokenType {
     RETURN, // return
     LBRACE, // {
     RBRACE, // }
+    LPAREN, // (
+    RPAREN, // )
+    LBRACK, // [
+    RBRACK, // ]
     SEMICOLON, // ;
+    COLON, // :
+    COMMA, // ,
+    DOT, // .
+
+    // Methods
     IF, // if
     ELSEIF, // elif
     ELSE, // else
@@ -37,26 +46,20 @@ enum class TokenType {
 */
 
     // Specific Types
+    LITERAL, // has no way of stating, inferred
     VOID, // has no way of stating, inferred
     INT, // int
     DOUBLE, // double, float
     BOOLEAN, // boolean
     CHAR, // char
-    STIRNG, // string
+    STRING, // string
     LIST, // list
     TUPLE, // tuple
     DICT, // dict
     TYPE, // type
 
-    // Operations
-    ASSIGNMENT,
-    ARITHMETIC,
-    RELATIONAL,
-    LOGICAL,
-    BITWISE,
-
     // Operators
-    SET, // =
+    ASSIGN, // =
     SETEACH, // ->
     ADD, // +
     SUB, // -
@@ -75,13 +78,22 @@ enum class TokenType {
     INVERT, // ~
 };
 
+struct Token {
+    TokenType type;
+    std::string lexme;
+    int line;
+    int column;
+}
+
 class lexer {
 private:
     std::string inFile_;
     std::ifstream inStream_;
 public:
+    bool isLexable = true;
     lexer(const std::string& inFile);
     ~lexer();
+
 };
 
 #endif // LEXER_H
