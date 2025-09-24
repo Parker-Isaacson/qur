@@ -4,6 +4,10 @@
 #include <exception>
 #include <string>
 #include <fstream>
+#include <vector>
+
+// Temporary Includes
+#include <iostream>
 
 
 class lexerError : public std::exception {
@@ -30,6 +34,7 @@ enum class TokenType {
     COLON, // :
     COMMA, // ,
     DOT, // .
+    IDENTIFIER, // variable
 
     // Methods
     IF, // if
@@ -49,18 +54,22 @@ enum class TokenType {
     LITERAL, // has no way of stating, inferred
     VOID, // has no way of stating, inferred
     INT, // int
-    DOUBLE, // double, float
+    DOUBLE, // double
     BOOLEAN, // boolean
     CHAR, // char
     STRING, // string
+/* Not implemented in the first interation of this compiler.
     LIST, // list
     TUPLE, // tuple
     DICT, // dict
     TYPE, // type
+*/
 
     // Operators
     ASSIGN, // =
+/* Not implemented in the first interation of this compiler.
     SETEACH, // ->
+*/
     ADD, // +
     SUB, // -
     MUL, // *
@@ -76,6 +85,9 @@ enum class TokenType {
     AND, // &
     OR, // |
     INVERT, // ~
+
+    // Unknown for the sake that it's a possibility / edge case
+    UNKNOWN
 };
 
 struct Token {
@@ -83,17 +95,18 @@ struct Token {
     std::string lexme;
     int line;
     int column;
-}
+};
 
 class lexer {
 private:
     std::string inFile_;
     std::ifstream inStream_;
+    std::vector<Token> tokens_;
+
 public:
-    bool isLexable = true;
     lexer(const std::string& inFile);
     ~lexer();
-
+    std::vector<Token> getTokens() { return tokens_; }
 };
 
 #endif // LEXER_H

@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
             std::cout << "Bad argument: " << param << ". Skipping.\n";
         }
     }
-    lexer myLexer();
+    lexer myLexer("README.md");
     std::cout << std::endl;
     return 0;
 }
