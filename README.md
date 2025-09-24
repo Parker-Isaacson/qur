@@ -145,15 +145,13 @@ fn main() {
 ```qur
 import io;
 fn int main() {
-    /* Prints to the command line.
-     * Does print a '\n' at the end.
-     */
+    // Prints to the command line.
+    // Does print a '\n' at the end.
     print("Hello World!");
     // If you don't want the '\n', call print() with false as a second argument
     print("Hello World!", false);
-    /* Read always returns a string
-     * argument is the amount of characters returned
-     */
+    // Read always returns a string
+    // argument is the amount of characters returned
     string userInput = read(5);
 };
 ```
@@ -183,6 +181,9 @@ fn int main() {
 };
 ```
 
+### Comments
+
+Single line comments are the only ones supported as of now. You can be begin a single line comment with `//`.
 
 # TODO: ALL BELOW
 
