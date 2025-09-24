@@ -109,200 +109,154 @@ lexer::lexer(const std::string& inFile)
     std::string line;
     int row = 0;
     while ( std::getline(inStream_, line) ) {
-        std::string unLexed = "";
-        Token t;
-        bool comment = false;
-        for ( int i = 0; i < line.size(); i++ ) {
+        for (int i = 0; i < line.size(); i++) {
             char c = line[i];
-            switch ( c ) {
-                // These are all keyword values
-                case 'r': // return
-                    if ( line.compare(i, 6, "return") == 0 ) {
-                        t = { TokenType::RETURN, "return", row, i };
-                        i += 5;
-                        tokens_.push_back(t);
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                case 'i': // if or int
-                    if ( line.compare(i, 2, "if") == 0 ) {
-                        t = { TokenType::IF, "if", row, i };
-                        i += 1;
-                        tokens_.push_back(t);
-                    } else if ( line.compare(i, 3, "int" ) == 0 ) {
-                        t = { TokenType::INT, "int", row, i };
-                        i += 2;
-                        tokens_.push_back(t);
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                case 'e': // elif or else
-                    if ( line.compare(i, 4, "elif") == 0 ) {
-                        t = { TokenType::ELSEIF, "elif", row, i };
-                        i += 3;
-                        tokens_.push_back(t);
-                    } else if ( line.compare(i, 4, "else" ) == 0 ) {
-                        t = { TokenType::ELSE, "else", row, i };
-                        i += 3;
-                        tokens_.push_back(t);
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                case 'f': // for or fn
-                    if ( line.compare(i, 3, "for" ) == 0 ) {
-                        t = { TokenType::FOR, "for", row, i };
-                        i += 2;
-                        tokens_.push_back(t);
-                    } else if ( line.compare(i, 2, "fn" ) == 0 ) {
-                        t = { TokenType::FUNCTION, "fn", row, i };
-                        i += 1;
-                        tokens_.push_back(t);
-                    }
-                    else {
-                        unLexed += c;
-                    }
-                    break;
-                case 'w': // while
-                    if ( line.compare(i, 5, "while" ) == 0 ) {
-                        t = { TokenType::WHILE, "while", row, i };
-                        i += 4;
-                        tokens_.push_back(t);
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                case 'c': // continue or char
-                    if ( line.compare(i, 8, "continue" ) == 0 ) {
-                        t = { TokenType::CONTINUE, "continue", row, i };
-                        i += 7;
-                        tokens_.push_back(t);
-                    } else if ( line.compare(i, 4, "char" ) == 0 ) {
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                case 'b': // break or boolean
-                    if ( line.compare(i, 5, "break" ) == 0 ) {
-                        t = { TokenType::BREAK, "break", row, i };
-                        i += 4;
-                        tokens_.push_back(t);
-                    } else if ( line.compare(i, 7, "boolean" ) == 0 ) {
-                        t = { TokenType::BOOLEAN, "boolean", row, i };
-                        i += 6;
-                        tokens_.push_back(t);
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                case 'd': // double
-                    if ( line.compare(i, 6, "double" ) == 0 ) {
-                        t = { TokenType::DOUBLE, "double", row, i };
-                        i += 5;
-                        tokens_.push_back(t);
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                case 's': // string
-                    if ( line.compare(i, 6, "string" ) == 0 ) {
-                        t = { TokenType::STRING, "string", row, i };
-                        i += 5;
-                        tokens_.push_back(t);
-                    } else {
-                        unLexed += c;
-                    }
-                    break;
-                // These all can be ignored
-                case ' ':
-                case '\t':
-                case '\n':
-                case '\r':
-                    break;
-                // The following are guarantied to be a single char
-                case '{':
-                case '}':
-                case '(':
-                case ')':
-                case '[':
-                case ']':
-                case ';':
-                case ',':
-                case '.':
-                case '+':
-                case '*':
-                case '%':
-                case '&':
-                case '|':
-                case '~':
-                    // Need to handle the single char, should be as easy as making a new Token, via a utility function
-                    t = { StringToToken(std::string(1, c)), std::string(1, c), row, i };
-                    tokens_.push_back(t);
-                    break;
-                // These are all Operators that are not guaranteed to be a single char
-                case '=': // = or == 
-                    if ( line[i + 1] == '=' ) {
-                        t = { TokenType::EQUAL, "==", row, i };
-                        i += 1;
-                        tokens_.push_back(t);
-                    } else {
-                        t = { TokenType::ASSIGN, "=", row, i };
-                        tokens_.push_back(t);
-                    }
-                    break;
-                case '-': // sub or seteach
-                    // There will be code here in the future to handle TokenType::SETEACH
-                    t = { TokenType::SUB, "-", row, i };
-                    tokens_.push_back(t);
-                    break;
-                case '/': // DIV or comment
-                    if ( line[i + 1] == '/' ) {
-                        comment = true;
-                    } else {
-                        t = { TokenType::DIV, "/", row, i };
-                        tokens_.push_back(t);
-                    }
-                    break;
-                case '<': // < or <=
-                    if ( line[i + 1] == '=' ) {
-                        t = { TokenType::LESSTHANEQUAL, "<=", row, i };
-                        i += 1;
-                    } else {
-                        t = { TokenType::LESSTHAN, "<", row, i };
-                    }
-                    tokens_.push_back(t);
-                    break;
-                case '>': // > or >=
-                    if ( line[i + 1] == '=' ) {
-                        t = { TokenType::MORETHANEQUAL, ">=", row, i };
-                        i += 1;
-                    } else {
-                        t = { TokenType::MORETHAN, ">", row, i };
-                    }
-                    tokens_.push_back(t);
-                    break;
-                case '!': // ! or !=
-                    if ( line[i + 1] == '=' ) {
-                        t = { TokenType::NOTEQUAL, "!=", row, i };
-                        i += 1;
-                    } else {
-                        t = { TokenType::NOT, "!", row, i };
-                    }
-                    tokens_.push_back(t);
-                    break;
-                // Unknown
-                default:
-                    unLexed += c;
-                    break;
-                
+            int startCol = i;
+            Token t;
+            // Whitespace
+            if ( std::isspace(c) ) {
+                continue; // skip whitespace
             }
-            if (comment)
-                break;
+
+            // Keyword or Variable
+            if ( std::isalpha(c) || c == '_' ) {
+                std::string word;
+                while ( i < line.size() && (std::isalnum(line[i]) || line[i] == '_' ) ) {
+                    word += line[i];
+                    i++;
+                }
+                i--;
+
+                TokenType type = StringToToken(word);
+                if ( type == TokenType::UNKNOWN ) {
+                    type = TokenType::IDENTIFIER;
+                }
+                t = { type, word, row, startCol };
+                tokens_.push_back(t);
+                continue;
+            }
+
+            // Number Literal
+            if ( std::isdigit(c) ) {
+                std::string num;
+                bool hasDot = false;
+                while ( i < line.size() && (std::isdigit(line[i]) || line[i] == '.' ) ) {
+                    if (line[i] == '.') {
+                        if (hasDot) break;
+                        hasDot = true;
+                    }
+                    num += line[i];
+                    i++;
+                }
+                i--;
+                t = { TokenType::LITERAL, num, row, startCol };
+                tokens_.push_back(t);
+                continue;
+            }
+
+            // String Literal
+            if ( c == '"' ) {
+                std::string str;
+                i++; // skip opening "
+                while ( i < line.size() && line[i] != '"' ) {
+                    if ( line[i] == '\\' && i + 1 < line.size() ) { // escape sequence
+                        str += line[i];
+                        i++;
+                    }
+                    str += line[i];
+                    i++;
+                }
+                t = { TokenType::STRING, str, row, startCol };
+                tokens_.push_back(t);
+                continue;
+            }
+
+            // Char literal
+            if ( c == '\'' ) {
+                std::string chr;
+                i++; // skip opening '
+                if ( i < line.size() ) {
+                    chr += line[i];
+                    if ( chr[0] == '\\' && i + 1 < line.size() ) { // escaped char
+                        i++;
+                        chr += line[i];
+                    }
+                    i++;
+                }
+                t = { TokenType::CHAR, chr, row, startCol };
+                tokens_.push_back(t);
+                continue;
+            }
+
+            // Comments
+            if ( c == '/' && i + 1 < line.size() && line[i+1] == '/' ) {
+                break; // skip rest of line
+            }
+
+            // Other Tokens
+            switch (c) {
+                case '{': case '}': case '(': case ')': case '[': case ']':
+                case ';': case ',': case '.': case '+': case '*': case '%':
+                case '&': case '|': case '~':
+                    t = { StringToToken(std::string(1, c)), std::string(1, c), row, startCol };
+                    tokens_.push_back(t);
+                    break;
+
+                case '=':
+                    if ( i + 1 < line.size() && line[i + 1] == '=' ) {
+                        t = { TokenType::EQUAL, "==", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::ASSIGN, "=", row, startCol };
+                    }
+                    tokens_.push_back(t);
+                    break;
+
+                case '-':
+                    t = { TokenType::SUB, "-", row, startCol };
+                    tokens_.push_back(t);
+                    break;
+
+                case '/':
+                    t = { TokenType::DIV, "/", row, startCol };
+                    tokens_.push_back(t);
+                    break;
+
+                case '<':
+                    if ( i + 1 < line.size() && line[i + 1] == '=' ) {
+                        t = { TokenType::LESSTHANEQUAL, "<=", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::LESSTHAN, "<", row, startCol };
+                    }
+                    tokens_.push_back(t);
+                    break;
+
+                case '>':
+                    if ( i + 1 < line.size() && line[i + 1] == '=' ) {
+                        t = { TokenType::MORETHANEQUAL, ">=", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::MORETHAN, ">", row, startCol };
+                    }
+                    tokens_.push_back(t);
+                    break;
+
+                case '!':
+                    if ( i + 1 < line.size() && line[i + 1] == '=') {
+                        t = { TokenType::NOTEQUAL, "!=", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::NOT, "!", row, startCol };
+                    }
+                    tokens_.push_back(t);
+                    break;
+
+                default:
+                    throw lexerError("Unexpected character '" + c + "' at row " + row + ", col " + i);
+                    break;
+            }
         }
-        std::cout << std::endl;
-        row++;
     }
 }
 

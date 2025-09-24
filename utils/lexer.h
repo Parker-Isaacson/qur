@@ -22,6 +22,9 @@ public:
 };
 
 enum class TokenType {
+    // Unknown for the sake that it's a possibility / edge case
+    UNKNOWN,
+
     // Specific Keywords
     RETURN, // return
     LBRACE, // {
@@ -85,9 +88,6 @@ enum class TokenType {
     AND, // &
     OR, // |
     INVERT, // ~
-
-    // Unknown for the sake that it's a possibility / edge case
-    UNKNOWN
 };
 
 struct Token {
