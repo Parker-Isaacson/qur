@@ -253,7 +253,7 @@ lexer::lexer(const std::string& inFile)
                     break;
 
                 default:
-                    throw lexerError("Unexpected character '" + c + "' at row " + row + ", col " + i);
+                    throw lexerError("Unexpected character '" + std::string(1, c) + "' at row " + std::to_string(row) + ", col " + std::to_string(i));
                     break;
             }
         }
