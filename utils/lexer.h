@@ -107,6 +107,7 @@ public:
     lexer(const std::string& inFile);
     ~lexer();
     std::vector<Token> getTokens() { return tokens_; }
+    void printTokens();
 };
 
 #endif // LEXER_H

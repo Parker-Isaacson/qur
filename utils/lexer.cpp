@@ -98,7 +98,6 @@ TokenType StringToToken(const std::string& str) {
 
 lexer::lexer(const std::string& inFile)
     : inFile_(inFile) {
-    std::cout << "Here" << std::endl;
     // Open the file
     inStream_.open(inFile);
     // We then check if the file is actually open
@@ -263,3 +262,11 @@ lexer::lexer(const std::string& inFile)
 lexer::~lexer() {
     inStream_.close();
 }
+
+void lexer::printTokens() { 
+  for ( auto Token : tokens_ ) {
+    std::cout << TokenToString(Token.type) << " ";
+  }
+  std::cout << std::endl;
+}
+ 

@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
         }
     }
     lexer myLexer("README.md");
+    myLexer.getTokens();
     std::cout << std::endl;
     return 0;
 }
