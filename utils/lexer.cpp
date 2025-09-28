@@ -13,7 +13,7 @@ std::string TokenToString(TokenType type) {
         case TokenType::COLON: return ":";
         case TokenType::COMMA: return ",";
         case TokenType::DOT: return ".";
-        case TokenType::IDENTIFIER: return "variable";
+        case TokenType::IDENTIFIER: return "identifier";
         case TokenType::IF: return "if";
         case TokenType::ELSEIF: return "elif";
         case TokenType::ELSE: return "else";
@@ -61,7 +61,7 @@ TokenType StringToToken(const std::string& str) {
     if (str == ":") return TokenType::COLON;
     if (str == ",") return TokenType::COMMA;
     if (str == ".") return TokenType::DOT;
-    if (str == "variable") return TokenType::IDENTIFIER;
+    if (str == "identifier") return TokenType::IDENTIFIER;
     if (str == "if") return TokenType::IF;
     if (str == "elif") return TokenType::ELSEIF;
     if (str == "else") return TokenType::ELSE;
@@ -99,12 +99,11 @@ TokenType StringToToken(const std::string& str) {
 lexer::lexer(const std::string& inFile)
     : inFile_(inFile) {
     // Open the file
-    inStream_.open(inFile);
+    inStream_.open(inFile_);
     // We then check if the file is actually open
     if ( !inStream_.good() ) {
         throw lexerError("Error opening file");
     }
-    
     std::string line;
     int row = 0;
     while ( std::getline(inStream_, line) ) {
@@ -267,6 +266,5 @@ void lexer::printTokens() {
   for ( auto Token : tokens_ ) {
     std::cout << TokenToString(Token.type) << " ";
   }
-  std::cout << std::endl;
 }
  
