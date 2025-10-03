@@ -4,6 +4,10 @@
 #include <exception>
 #include <string>
 #include <fstream>
+#include <vector>
+
+// Temporary Includes
+#include <iostream>
 
 
 class lexerError : public std::exception {
@@ -18,11 +22,24 @@ public:
 };
 
 enum class TokenType {
+    // Unknown for the sake that it's a possibility / edge case
+    UNKNOWN,
+
     // Specific Keywords
     RETURN, // return
     LBRACE, // {
     RBRACE, // }
+    LPAREN, // (
+    RPAREN, // )
+    LBRACK, // [
+    RBRACK, // ]
     SEMICOLON, // ;
+    COLON, // :
+    COMMA, // ,
+    DOT, // .
+    IDENTIFIER, // variable
+
+    // Methods
     IF, // if
     ELSEIF, // elif
     ELSE, // else
@@ -37,27 +54,25 @@ enum class TokenType {
 */
 
     // Specific Types
+    LITERAL, // has no way of stating, inferred
     VOID, // has no way of stating, inferred
     INT, // int
-    DOUBLE, // double, float
+    DOUBLE, // double
     BOOLEAN, // boolean
     CHAR, // char
-    STIRNG, // string
+    STRING, // string
+/* Not implemented in the first interation of this compiler.
     LIST, // list
     TUPLE, // tuple
     DICT, // dict
     TYPE, // type
-
-    // Operations
-    ASSIGNMENT,
-    ARITHMETIC,
-    RELATIONAL,
-    LOGICAL,
-    BITWISE,
+*/
 
     // Operators
-    SET, // =
+    ASSIGN, // =
+/* Not implemented in the first interation of this compiler.
     SETEACH, // ->
+*/
     ADD, // +
     SUB, // -
     MUL, // *
@@ -75,13 +90,24 @@ enum class TokenType {
     INVERT, // ~
 };
 
+struct Token {
+    TokenType type;
+    std::string lexme;
+    int line;
+    int column;
+};
+
 class lexer {
 private:
     std::string inFile_;
     std::ifstream inStream_;
+    std::vector<Token> tokens_;
+
 public:
     lexer(const std::string& inFile);
     ~lexer();
+    std::vector<Token> getTokens() { return tokens_; }
+    void printTokens();
 };
 
 #endif // LEXER_H

@@ -1,0 +1,32 @@
+fn int main() {
+    //basic int testing
+
+    int int1 = 3;
+    int int2 = 7;
+    int int3 = int1 + int2; // 10
+    int int4 = int1 - int2; // -4
+    int int5 = int2 % int1; // 1
+    int int6 = int1 * int2 // 21
+    int int7 = 10 + 3 //13;
+    int int1 = -4
+
+    double double1 = int1 / int2; // .42857
+
+    boolean bool1 = int1 == int2; //false
+    boolean bool2 = int1 > int2; //false
+    boolean bool3 = int1 < int2; //true
+    boolean bool4 = 3 >= 3; // true
+    boolean bool5 = 3 <= 3; // true
+    boolean bool6 = 3 != 4; //true
+    boolean bool7 = 3 !=4 | 3 !=3; //true
+    boolean bool8 = 3 !=4 & 3 !=3; //false
+
+    //display for easy debugging
+    print("${int1},${int3},${int4},${int5},${int6},${int7} \n"); 
+    print("${doubl1} \n");
+    print("${bool1},${bool2},${bool3},${bool4},${bool5},${bool6},${bool7},${bool8} \n");
+
+
+
+    return 0;
+};
