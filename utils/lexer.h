@@ -6,10 +6,6 @@
 #include <fstream>
 #include <vector>
 
-// Temporary Includes
-#include <iostream>
-
-
 class lexerError : public std::exception {
 private:
     std::string msg_; // No default error
