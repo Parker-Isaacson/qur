@@ -47,35 +47,41 @@ struct numberNode : astNode {
     void generateASM() const override = 0; // No asm yet
 };
 
-// Other Nodes
-//      *Generic Constant
-//          Pair ( value, type )
-//      Constant Float
-//      Constant String
-//      Binary Operator
-//      *Unary Operator
-//          Binary Operator but for single value arithmetic
-//      Variable
-//          Represents a Variable Reference
-//      Assign
-//      Body
-//      Condition
-//      *If Statement
-//          For the actual if stuff if {...} elif {...} else {...}
-//      For Loop
-//      While Loop
-//      Function
-//      Operator ( Subset of Function )
-//      *Function / Operator Call
-//
-//      Ones that Might be useful Later
-//      Return Statement
-//      Import / Include
-//      Class / Struct / Enum
-//      Indexing or Member Access
-//          arr[i], obj.field
-//      Ternary Expression
-//
-//      All will inherit from GENERIC
-
+/* Inheritance Depth
+ * Generic
+ *  Variable
+ *  Const
+ *   Int
+ *   Double
+ *   String
+ *   Char
+ *  Operator
+ *   Unary
+ *   Binary
+ *   Assign
+ *  If
+ *   Condition
+ *  Loop
+ *   For
+ *   While
+ *  Function
+ *   Function
+ *   Operator
+ *   Call
+ *   Return
+ *  Body
+ */
+/* To Be Implemented Later
+ * Import
+ * Class
+ *  Class
+ *  Struct
+ * Enum
+ * NonPrimitive
+ *  List
+ *  Touple
+ *  Dictionary
+ *  Index
+ * Ternary
+ */
 #endif // AST_H
