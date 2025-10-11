@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <iostream>
 
 class lexerError : public std::exception {
 private:

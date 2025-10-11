@@ -29,7 +29,7 @@ fn int main() {
     int myInt = 0;
     double myDouble = 3.14;
     boolean myBool = false;
-    char myChar = 'c'
+    char myChar = 'c';
     string myString = "Hello, World!";
 
     type myType = int;

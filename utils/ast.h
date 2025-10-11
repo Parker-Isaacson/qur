@@ -37,7 +37,7 @@ struct numberNode : astNode {
     int value;
 
     explicit numberNode(int v) : value(v) {
-        type = astNodeType::NUMBER; // Explicit because I could not figure out the other way
+        type = astNodeType::NUMBER;
     }
 
     void print(int indent = 0) const override {
@@ -46,5 +46,36 @@ struct numberNode : astNode {
 
     void generateASM() const override = 0; // No asm yet
 };
+
+// Other Nodes
+//      *Generic Constant
+//          Pair ( value, type )
+//      Constant Float
+//      Constant String
+//      Binary Operator
+//      *Unary Operator
+//          Binary Operator but for single value arithmetic
+//      Variable
+//          Represents a Variable Reference
+//      Assign
+//      Body
+//      Condition
+//      *If Statement
+//          For the actual if stuff if {...} elif {...} else {...}
+//      For Loop
+//      While Loop
+//      Function
+//      Operator ( Subset of Function )
+//      *Function / Operator Call
+//
+//      Ones that Might be useful Later
+//      Return Statement
+//      Import / Include
+//      Class / Struct / Enum
+//      Indexing or Member Access
+//          arr[i], obj.field
+//      Ternary Expression
+//
+//      All will inherit from GENERIC
 
 #endif // AST_H
