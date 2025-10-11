@@ -47,41 +47,40 @@ struct numberNode : astNode {
     void generateASM() const override = 0; // No asm yet
 };
 
-/* Inheritance Depth
- * Generic
- *  Variable
- *  Const
- *   Int
- *   Double
- *   String
- *   Char
- *  Operator
- *   Unary
- *   Binary
- *   Assign
- *  If
- *   Condition
- *  Loop
- *   For
- *   While
- *  Function
- *   Function
- *   Operator
- *   Call
- *   Return
- *  Body
- */
-/* To Be Implemented Later
- * Import
- * Class
- *  Class
- *  Struct
- * Enum
- * NonPrimitive
- *  List
- *  Touple
- *  Dictionary
- *  Index
- * Ternary
- */
+/*
+Node
+  Expression
+    Literal
+      Int
+      Double
+      String
+      Char
+    Variable
+    UnaryOp
+    BinaryOp
+    Assign
+    FunctionCall
+  Statement
+    If
+      Condition
+    Loop
+      For
+      While
+    Return
+  Declaration
+    Function
+  Body
+// Added later
+  Declaration
+    Class
+    Struct
+    Enum
+  Expression
+    List
+    Tuple
+    Dictionary
+    Index
+    Ternary
+  Import
+*/
 #endif // AST_H
