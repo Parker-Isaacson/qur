@@ -4,13 +4,12 @@
 #include "lexer.h"
 #include <memory>
 #include <string>
-
-// For printing, mostly debug
+#include <vector>
 #include <iostream>
 
 class astError : public std::exception {
 private:
-    std::string msg_; // No default error
+    std::string msg_;
 
 public:
     astError(const std::string& msg) : msg_(msg) {}
@@ -25,15 +24,9 @@ enum class astNodeType {
             LITERAL,
                 INT,
                 DOUBLE,
-                // STRING,
                 CHAR,
                 BOOL,
             VARIABLE,
-            // LIST
-            // TUPLE
-            // DICT
-            // INDEX
-            // TERNARY
             UNARYOP,
             BINARYOP,
             ASSIGNOP,
@@ -45,15 +38,17 @@ enum class astNodeType {
                 FOR,
                 WHILE,
             RETURN,
+            BREAK,
+            CONTINUE,
         DECLARATION,
             FUNCTION,
-            // OPERATOR,
-            // CLASS
-            // STRUCT
-            // ENUM
+            VARDECL,
         BODY,
-        // IMPORT
+        PROGRAM,
 };
+
+// Forward declarations
+class AST;
 
 struct astNode {
     virtual ~astNode() = default;
@@ -95,10 +90,10 @@ struct charLiteralNode : literalNode {
     char value;
     explicit charLiteralNode(char v) : value(v) { type = astNodeType::CHAR; }
     void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "char(" << value << ")\n";
+        std::cout << std::string(indent, ' ') << "char('" << value << "')\n";
     }
     void generateASM() const override {}
-    std::string describe() const override { return std::string("CHAR literal: ") + value; }
+    std::string describe() const override { return std::string("CHAR literal: '") + value + "'"; }
 };
 
 struct booleanLiteralNode : literalNode {
@@ -112,31 +107,29 @@ struct booleanLiteralNode : literalNode {
 };
 
 enum class astVarType {
+    VOID,
     INT,
     DOUBLE,
     STRING,
     CHAR,
     BOOLEAN,
-    LIST,
-    TUPLE,
-    DICT,
+    INFERRED,
 };
 
 struct variableNode : expressionNode {
+    std::string name;
     astVarType varType;
-    std::unique_ptr<literalNode> value;
 
-    variableNode(std::unique_ptr<literalNode> v, astVarType t)
-        : value(std::move(v)), varType(t) {
+    variableNode(std::string n, astVarType t = astVarType::INFERRED)
+        : name(std::move(n)), varType(t) {
         type = astNodeType::VARIABLE;
     }
 
     void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "Variable(" << (int)varType << "): ";
-        if (value) value->print(indent + 2);
+        std::cout << std::string(indent, ' ') << "Variable(\"" << name << "\", type=" << (int)varType << ")\n";
     }
     void generateASM() const override {}
-    std::string describe() const override { return "Variable of type " + std::to_string((int)varType); }
+    std::string describe() const override { return "Variable: " + name; }
 };
 
 struct unaryOpNode : expressionNode {
@@ -176,35 +169,36 @@ struct binaryOpNode : expressionNode {
 };
 
 struct assignOpNode : expressionNode {
-    std::unique_ptr<variableNode> target;
+    std::string targetName;
     std::unique_ptr<expressionNode> value;
 
-    assignOpNode(std::unique_ptr<variableNode> t, std::unique_ptr<expressionNode> v)
-        : target(std::move(t)), value(std::move(v)) {
+    assignOpNode(std::string t, std::unique_ptr<expressionNode> v)
+        : targetName(std::move(t)), value(std::move(v)) {
         type = astNodeType::ASSIGNOP;
     }
 
     void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "AssignOp\n";
-        if (target) target->print(indent + 2);
+        std::cout << std::string(indent, ' ') << "AssignOp(\"" << targetName << "\")\n";
         if (value) value->print(indent + 2);
     }
     void generateASM() const override {}
-    std::string describe() const override { return "Assignment operation"; }
+    std::string describe() const override { return "Assignment to: " + targetName; }
 };
 
 struct fnCallNode : expressionNode {
     std::string name;
     std::vector<std::unique_ptr<expressionNode>> args;
 
-    fnCallNode(std::string n, std::vector<std::unique_ptr<expressionNode>> a)
+    fnCallNode(std::string n, std::vector<std::unique_ptr<expressionNode>> a = {})
         : name(std::move(n)), args(std::move(a)) {
         type = astNodeType::FNCALL;
     }
 
     void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "FnCall(" << name << ")\n";
-        for (auto &a : args) a->print(indent + 2);
+        std::cout << std::string(indent, ' ') << "FnCall(\"" << name << "\")\n";
+        for (const auto &a : args) {
+            if (a) a->print(indent + 2);
+        }
     }
     void generateASM() const override {}
     std::string describe() const override { return "Function call: " + name; }
@@ -215,36 +209,28 @@ struct statementNode : astNode {
 };
 
 struct ifNode : statementNode {
-    std::unique_ptr<astNode> condition;
-    std::unique_ptr<astNode> body;
+    std::unique_ptr<expressionNode> condition;
+    std::unique_ptr<astNode> thenBody;
+    std::unique_ptr<astNode> elseBody;
 
-    ifNode(std::unique_ptr<astNode> c, std::unique_ptr<astNode> b)
-        : condition(std::move(c)), body(std::move(b)) {
+    ifNode(std::unique_ptr<expressionNode> c, std::unique_ptr<astNode> t, std::unique_ptr<astNode> e = nullptr)
+        : condition(std::move(c)), thenBody(std::move(t)), elseBody(std::move(e)) {
         type = astNodeType::IF;
     }
 
     void print(int indent = 0) const override {
         std::cout << std::string(indent, ' ') << "IfStatement\n";
-        if (condition) condition->print(indent + 2);
-        if (body) body->print(indent + 2);
+        std::cout << std::string(indent + 2, ' ') << "Condition:\n";
+        if (condition) condition->print(indent + 4);
+        std::cout << std::string(indent + 2, ' ') << "Then:\n";
+        if (thenBody) thenBody->print(indent + 4);
+        if (elseBody) {
+            std::cout << std::string(indent + 2, ' ') << "Else:\n";
+            elseBody->print(indent + 4);
+        }
     }
     void generateASM() const override {}
     std::string describe() const override { return "If statement"; }
-};
-
-struct conditionNode : statementNode {
-    std::unique_ptr<expressionNode> expr;
-    explicit conditionNode(std::unique_ptr<expressionNode> e)
-        : expr(std::move(e)) {
-        type = astNodeType::CONDITION;
-    }
-
-    void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "Condition\n";
-        if (expr) expr->print(indent + 2);
-    }
-    void generateASM() const override {}
-    std::string describe() const override { return "Condition node"; }
 };
 
 struct loopNode : statementNode {
@@ -253,40 +239,46 @@ struct loopNode : statementNode {
 
 struct forNode : loopNode {
     std::unique_ptr<astNode> init;
-    std::unique_ptr<astNode> cond;
-    std::unique_ptr<astNode> incr;
+    std::unique_ptr<expressionNode> condition;
+    std::unique_ptr<expressionNode> increment;
     std::unique_ptr<astNode> body;
 
-    forNode(std::unique_ptr<astNode> i, std::unique_ptr<astNode> c,
-            std::unique_ptr<astNode> inc, std::unique_ptr<astNode> b)
-        : init(std::move(i)), cond(std::move(c)), incr(std::move(inc)), body(std::move(b)) {
+    forNode(std::unique_ptr<astNode> i, std::unique_ptr<expressionNode> c,
+            std::unique_ptr<expressionNode> inc, std::unique_ptr<astNode> b)
+        : init(std::move(i)), condition(std::move(c)), increment(std::move(inc)), body(std::move(b)) {
         type = astNodeType::FOR;
     }
 
     void print(int indent = 0) const override {
         std::cout << std::string(indent, ' ') << "ForLoop\n";
-        if (init) init->print(indent + 2);
-        if (cond) cond->print(indent + 2);
-        if (incr) incr->print(indent + 2);
-        if (body) body->print(indent + 2);
+        std::cout << std::string(indent + 2, ' ') << "Init:\n";
+        if (init) init->print(indent + 4);
+        std::cout << std::string(indent + 2, ' ') << "Condition:\n";
+        if (condition) condition->print(indent + 4);
+        std::cout << std::string(indent + 2, ' ') << "Increment:\n";
+        if (increment) increment->print(indent + 4);
+        std::cout << std::string(indent + 2, ' ') << "Body:\n";
+        if (body) body->print(indent + 4);
     }
     void generateASM() const override {}
     std::string describe() const override { return "For loop"; }
 };
 
 struct whileNode : loopNode {
-    std::unique_ptr<astNode> cond;
+    std::unique_ptr<expressionNode> condition;
     std::unique_ptr<astNode> body;
 
-    whileNode(std::unique_ptr<astNode> c, std::unique_ptr<astNode> b)
-        : cond(std::move(c)), body(std::move(b)) {
+    whileNode(std::unique_ptr<expressionNode> c, std::unique_ptr<astNode> b)
+        : condition(std::move(c)), body(std::move(b)) {
         type = astNodeType::WHILE;
     }
 
     void print(int indent = 0) const override {
         std::cout << std::string(indent, ' ') << "WhileLoop\n";
-        if (cond) cond->print(indent + 2);
-        if (body) body->print(indent + 2);
+        std::cout << std::string(indent + 2, ' ') << "Condition:\n";
+        if (condition) condition->print(indent + 4);
+        std::cout << std::string(indent + 2, ' ') << "Body:\n";
+        if (body) body->print(indent + 4);
     }
     void generateASM() const override {}
     std::string describe() const override { return "While loop"; }
@@ -295,7 +287,7 @@ struct whileNode : loopNode {
 struct returnNode : statementNode {
     std::unique_ptr<expressionNode> value;
 
-    explicit returnNode(std::unique_ptr<expressionNode> v)
+    explicit returnNode(std::unique_ptr<expressionNode> v = nullptr)
         : value(std::move(v)) {
         type = astNodeType::RETURN;
     }
@@ -308,31 +300,82 @@ struct returnNode : statementNode {
     std::string describe() const override { return "Return statement"; }
 };
 
+struct breakNode : statementNode {
+    breakNode() { type = astNodeType::BREAK; }
+
+    void print(int indent = 0) const override {
+        std::cout << std::string(indent, ' ') << "Break\n";
+    }
+    void generateASM() const override {}
+    std::string describe() const override { return "Break statement"; }
+};
+
+struct continueNode : statementNode {
+    continueNode() { type = astNodeType::CONTINUE; }
+
+    void print(int indent = 0) const override {
+        std::cout << std::string(indent, ' ') << "Continue\n";
+    }
+    void generateASM() const override {}
+    std::string describe() const override { return "Continue statement"; }
+};
+
 struct declarationNode : astNode {
     declarationNode() { type = astNodeType::DECLARATION; }
 };
 
-struct functionNode : declarationNode {
+struct varDeclNode : declarationNode {
+    astVarType varType;
     std::string name;
-    std::vector<std::unique_ptr<variableNode>> params;
+    std::unique_ptr<expressionNode> initializer;
+
+    varDeclNode(astVarType t, std::string n, std::unique_ptr<expressionNode> init = nullptr)
+        : varType(t), name(std::move(n)), initializer(std::move(init)) {
+        type = astNodeType::VARDECL;
+    }
+
+    void print(int indent = 0) const override {
+        std::cout << std::string(indent, ' ') << "VarDecl(\"" << name << "\", type=" << (int)varType << ")\n";
+        if (initializer) {
+            std::cout << std::string(indent + 2, ' ') << "Initializer:\n";
+            initializer->print(indent + 4);
+        }
+    }
+    void generateASM() const override {}
+    std::string describe() const override { return "Variable declaration: " + name; }
+};
+
+struct paramNode {
+    astVarType type;
+    std::string name;
+
+    paramNode(astVarType t, std::string n) : type(t), name(std::move(n)) {}
+};
+
+struct functionNode : declarationNode {
+    astVarType returnType;
+    std::string name;
+    std::vector<paramNode> params;
     std::unique_ptr<astNode> body;
 
-    functionNode(std::string n, std::vector<std::unique_ptr<variableNode>> p, std::unique_ptr<astNode> b)
-        : name(std::move(n)), params(std::move(p)), body(std::move(b)) {
+    functionNode(astVarType rt, std::string n, std::vector<paramNode> p, std::unique_ptr<astNode> b)
+        : returnType(rt), name(std::move(n)), params(std::move(p)), body(std::move(b)) {
         type = astNodeType::FUNCTION;
     }
 
     void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "Function(" << name << ")\n";
+        std::cout << std::string(indent, ' ') << "Function(\"" << name << "\", returnType=" << (int)returnType << ")\n";
         std::cout << std::string(indent + 2, ' ') << "Params:\n";
-        for (auto &param : params) param->print(indent + 4);
+        for (const auto &param : params) {
+            std::cout << std::string(indent + 4, ' ') << "Param(\"" << param.name << "\", type=" << (int)param.type << ")\n";
+        }
         if (body) {
             std::cout << std::string(indent + 2, ' ') << "Body:\n";
             body->print(indent + 4);
         }
     }
     void generateASM() const override {}
-    std::string describe() const override { return "Function declaration: " + name; }
+    std::string describe() const override { return "Function: " + name; }
 };
 
 struct bodyNode : astNode {
@@ -344,10 +387,86 @@ struct bodyNode : astNode {
     }
 
     void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "Body\n";
-        for (auto &stmt : statements) stmt->print(indent + 2);
+        std::cout << std::string(indent, ' ') << "Body {\n";
+        for (const auto &stmt : statements) {
+            if (stmt) stmt->print(indent + 2);
+        }
+        std::cout << std::string(indent, ' ') << "}\n";
     }
     void generateASM() const override {}
-    std::string describe() const override { return "Body block"; }
+    std::string describe() const override { 
+        return "Body block with " + std::to_string(statements.size()) + " statement(s)"; 
+    }
 };
+
+struct programNode : astNode {
+    std::vector<std::unique_ptr<astNode>> declarations;
+
+    explicit programNode(std::vector<std::unique_ptr<astNode>> decls = {})
+        : declarations(std::move(decls)) {
+        type = astNodeType::PROGRAM;
+    }
+
+    void print(int indent = 0) const override {
+        std::cout << std::string(indent, ' ') << "Program\n";
+        for (const auto &decl : declarations) {
+            if (decl) decl->print(indent + 2);
+        }
+    }
+    void generateASM() const override {}
+    std::string describe() const override {
+        return "Program with " + std::to_string(declarations.size()) + " top-level declaration(s)";
+    }
+};
+
+// Main AST class for building and managing the abstract syntax tree
+class AST {
+private:
+    std::vector<Token> tokens_;
+    size_t current_;
+    std::unique_ptr<programNode> root_;
+
+    // Helper methods
+    Token peek() const;
+    Token previous() const;
+    Token advance();
+    bool check(TokenType type) const;
+    bool match(TokenType type);
+    bool match(std::initializer_list<TokenType> types);
+    bool isAtEnd() const;
+    Token consume(TokenType type, const std::string& errorMsg);
+
+    // Type conversion
+    astVarType tokenTypeToVarType(TokenType type);
+
+    // Parsing methods
+    std::unique_ptr<astNode> parseDeclaration();
+    std::unique_ptr<functionNode> parseFunction();
+    std::unique_ptr<varDeclNode> parseVarDeclaration();
+    std::unique_ptr<astNode> parseStatement();
+    std::unique_ptr<ifNode> parseIfStatement();
+    std::unique_ptr<whileNode> parseWhileStatement();
+    std::unique_ptr<forNode> parseForStatement();
+    std::unique_ptr<returnNode> parseReturnStatement();
+    std::unique_ptr<bodyNode> parseBody();
+    std::unique_ptr<expressionNode> parseExpression();
+    std::unique_ptr<expressionNode> parseAssignment();
+    std::unique_ptr<expressionNode> parseLogicalOr();
+    std::unique_ptr<expressionNode> parseLogicalAnd();
+    std::unique_ptr<expressionNode> parseEquality();
+    std::unique_ptr<expressionNode> parseComparison();
+    std::unique_ptr<expressionNode> parseAddition();
+    std::unique_ptr<expressionNode> parseMultiplication();
+    std::unique_ptr<expressionNode> parseUnary();
+    std::unique_ptr<expressionNode> parsePrimary();
+    std::unique_ptr<expressionNode> parseCall();
+
+public:
+    explicit AST(const std::vector<Token>& tokens);
+    void build();
+    void print() const;
+    const programNode* getRoot() const { return root_.get(); }
+    void generateCode() const;
+};
+
 #endif // AST_H
