@@ -7,13 +7,21 @@ AST::AST(const std::vector<Token>& tokens)
 // Helper methods
 Token AST::peek() const {
     if (isAtEnd()) {
-        return tokens_.back();
+        // Return a dummy EOF token instead of accessing invalid memory
+        static Token eofToken = {TokenType::UNKNOWN, "", -1, -1};
+        return eofToken;
     }
     return tokens_[current_];
 }
 
 Token AST::previous() const {
-    if (current_ == 0) return tokens_[0];
+    if (current_ == 0) {
+        if (tokens_.empty()) {
+            static Token dummy = {TokenType::UNKNOWN, "", -1, -1};
+            return dummy;
+        }
+        return tokens_[0];
+    }
     return tokens_[current_ - 1];
 }
 
@@ -51,7 +59,14 @@ bool AST::isAtEnd() const {
 
 Token AST::consume(TokenType type, const std::string& errorMsg) {
     if (check(type)) return advance();
-    throw astError(errorMsg + " at line " + std::to_string(peek().line));
+    
+    Token current = peek();
+    std::string fullMsg = errorMsg;
+    if (current.line >= 0) {
+        fullMsg += " at line " + std::to_string(current.line) + ", column " + std::to_string(current.column);
+    }
+    fullMsg += " (found '" + current.lexme + "')";
+    throw astError(fullMsg);
 }
 
 astVarType AST::tokenTypeToVarType(TokenType type) {
@@ -68,7 +83,12 @@ astVarType AST::tokenTypeToVarType(TokenType type) {
 
 // Main build method
 void AST::build() {
+    if (tokens_.empty()) {
+        throw astError("No tokens to parse - input file may be empty");
+    }
+
     std::vector<std::unique_ptr<astNode>> declarations;
+    bool hadError = false;
     
     while (!isAtEnd()) {
         try {
@@ -78,13 +98,31 @@ void AST::build() {
             }
         } catch (const astError& e) {
             std::cerr << "Parse error: " << e.what() << std::endl;
-            // Synchronize on semicolon or brace
-            while (!isAtEnd() && !check(TokenType::SEMICOLON) && 
-                   !check(TokenType::RBRACE)) {
+            hadError = true;
+            
+            // Synchronize: skip to next safe point
+            while (!isAtEnd()) {
+                Token t = peek();
+                // Stop at statement/declaration boundaries
+                if (t.type == TokenType::SEMICOLON) {
+                    advance();
+                    break;
+                }
+                if (t.type == TokenType::RBRACE || 
+                    t.type == TokenType::FUNCTION ||
+                    t.type == TokenType::IF ||
+                    t.type == TokenType::WHILE ||
+                    t.type == TokenType::FOR ||
+                    t.type == TokenType::RETURN) {
+                    break;
+                }
                 advance();
             }
-            if (match(TokenType::SEMICOLON)) continue;
         }
+    }
+    
+    if (hadError) {
+        throw astError("Failed to build AST due to parse errors");
     }
     
     root_ = std::make_unique<programNode>(std::move(declarations));
@@ -98,10 +136,10 @@ std::unique_ptr<astNode> AST::parseDeclaration() {
     }
     
     // Variable declaration: type name = expr;
-    if (match({TokenType::INT, TokenType::DOUBLE, TokenType::CHAR, 
-               TokenType::BOOLEAN, TokenType::STRING})) {
-        Token typeToken = previous();
-        astVarType varType = tokenTypeToVarType(typeToken.type);
+    if (check(TokenType::INT) || check(TokenType::DOUBLE) || 
+        check(TokenType::CHAR) || check(TokenType::BOOLEAN) || 
+        check(TokenType::STRING)) {
+        advance();
         return parseVarDeclaration();
     }
     
@@ -245,8 +283,7 @@ std::unique_ptr<forNode> AST::parseForStatement() {
     } else if (match({TokenType::INT, TokenType::DOUBLE, TokenType::CHAR, 
                       TokenType::BOOLEAN, TokenType::STRING})) {
         initializer = parseVarDeclaration();
-        current_--; // parseVarDeclaration consumes semicolon, we need it back
-        advance();
+        // parseVarDeclaration already consumed the semicolon
     } else {
         auto expr = parseExpression();
         consume(TokenType::SEMICOLON, "Expected ';' after for initializer");
@@ -503,7 +540,10 @@ std::unique_ptr<expressionNode> AST::parsePrimary() {
         return expr;
     }
     
-    throw astError("Expected expression at line " + std::to_string(peek().line));
+    Token current = peek();
+    throw astError("Expected expression at line " + std::to_string(current.line) + 
+                   ", column " + std::to_string(current.column) + 
+                   " (found '" + current.lexme + "')");
 }
 
 // Print the AST
