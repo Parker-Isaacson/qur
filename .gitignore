@@ -7,7 +7,12 @@
 # Built executable
 qur.exe
 qur
+compiler
+compiler.exe
 
 # Testing files
 file
 make.ps1
+
+*.o
+utils/*.o

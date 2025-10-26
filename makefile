@@ -1,9 +1,26 @@
-# Simple make file for linux
-qur: qur.cpp utils/lexer.cpp
-	g++ -std=c++17 qur.cpp utils/*.cpp -o qur 
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
+TARGET = compiler
+SOURCES = qur.cpp utils/lexer.cpp utils/ast.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
+HEADERS = lexer.h ast.h
 
-run:
-	./qur -c file.qur -o file
+# Default target
+all: $(TARGET)
 
+# Link the executable
+$(TARGET): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+# Compile source files
+%.o: %.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c $<
+
+# Clean build artifacts
 clean:
-	rm -f qur file
+	rm -f $(OBJECTS) $(TARGET)
+
+# Rebuild everything
+rebuild: clean all
+
+.PHONY: all test test-all test-fixed clean rebuild
