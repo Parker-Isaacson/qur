@@ -1,252 +1,230 @@
 # Qur Language
 
-Qur, pronounced "cure", based upon C++. Qur files are ended with `.qur`.
+**Qur** (pronounced *“cure”*) is a small experimental language inspired by C++ and designed to explore lexical analysis, parsing, and AST generation. Qur source files end with `.qur`.
 
-## Basics
+This implementation includes:
 
-Qur has everything delimited by a `;`, lines, loops, functions. The standard entry point is `fn int: main() {};`, arguments can be provided with the following. The `main` function can only exist once.
+* A **lexer** that tokenizes Qur syntax into meaningful tokens
+* An **AST builder** that constructs an abstract syntax tree
+* Basic support for **functions, loops, conditionals, literals, assignments, and operators**
 
-```qur
-fn int main(int argc, string[] argv) { return 0; };
-```
+---
 
-### Primitive Variable Types
-
-| qur     | C++                    | Notes                                            |
-|:--------|:-----------------------|:-------------------------------------------------|
-| int     | int                    | Not supported in an `if`, check value literally. |
-| double  | double                 | Not supported in an `if`, check value literally. |
-| boolean | bool                   |
-| char    | char                   |
-| string  | std::string            |
-| list    | std::vector            |
-| tuple   | std::tuple             |
-| dict    | std::map               |
-| type    | template\<typename T\> | Allows for user defined types.                   |
+## Example Program
 
 ```qur
 fn int main() {
-    int myInt = 0;
-    double myDouble = 3.14;
-    boolean myBool = false;
-    char myChar = 'c'
-    string myString = "Hello, World!";
+    string msg = "Hello, World!";
+    print(msg);
 
-    type myType = int;
-    return 0;
-};
-```
+    int a = 5;
+    int b = 10;
 
-String interpretation is possible, use `${}`, if the inside is a numeric value the rounding amount can be provided with `:n` where `n` is the amount of digits to round. The inside cannot be used for computation.
-
-```qur
-fn int main() {
-    double val = 3.141595;
-    print("${val:2}"); // Prints "3.14"
-    return 0;
-};
-```
-
-### Default Operators
-
-| qur | C++  | Type              | Usage                    |
-|:----|:-----|:------------------|:-------------------------|
-| =   | =    | Assignment        | set                      |
-| ->  | :    | Assignment        | for each                 |
-| +   | +    | Arithmetic        | addition                 |
-| -   | -    | Arithmetic        | subtraction              |
-| *   | *    | Arithmetic        | multiplication           |
-| /   | /    | Arithmetic        | division                 |
-| %   | %    | Arithmetic        | modulo                   |
-| <   | <    | Relational        | less than                |
-| >   | >    | Relational        | greater than             |
-| <=  | <=   | Relational        | less than or equal to    |
-| >=  | >=   | Relational        | greater than or equal to |
-| ==  | ==   | Relational        | equal to                 |
-| !=  | !=   | Relational        | not equal to             |
-| !   | !    | Logical           | not                      |
-| &   | &&   | Logical / Bitwise | and                      |
-| \|  | \|\| | Logical / Bitwise | or                       |
-| ~   | ~    | Bitwise           | invert                   |
-
-### if, elif, else
-
-Checking conditions is essential, an `if` `else if` chain only ends when the final condition has a `;`, the `elif` or `else` does not need to be on the same line as the ending `}`.
-
-```qur
-fn int main() {
-    int val = 1;
-    if ( val == 0 ) {
-        // Wont get here
-    } elif ( ! ( val == 1 ) ) {
-        // Wont get here
+    if (a < b) {
+        print("a is less than b");
     } else {
-        return 1;
+        print("a is not less than b");
     };
+
+    for (int i = 0; i < 5; i++) {
+        print("Loop iteration");
+    };
+
     return 0;
 };
 ```
 
-### For and While Loops
+Running the lexer and parser on this file will print the token stream and build a full AST representation of the program structure.
 
-Loops are declared in the similar method as you would in C. Must be closed with a `;`. Variables declared inside the `for` are scoped to only be inside the next bracket set.
+---
+
+## Language Overview
+
+### Functions
+
+All Qur programs begin execution in `fn int main()`.
+Functions are declared using the `fn` keyword, followed by a **return type**, a **name**, and **parenthesized parameters**.
 
 ```qur
+fn void greet(string name) {
+    print("Hello, ${name}");
+};
+```
+
+A function must always have a body enclosed in `{}` and end with a semicolon `;` after the body.
+
+---
+
+### Variables and Types
+
+| Qur Keyword | Meaning / Equivalent Type |
+| ----------- | ------------------------- |
+| `int`       | integer                   |
+| `double`    | floating point            |
+| `boolean`   | true/false                |
+| `char`      | single character          |
+| `string`    | text string               |
+
+Example:
+
+```qur
+int count = 5;
+double ratio = 3.14;
+boolean flag = true;
+char letter = 'A';
+string text = "Hello";
+```
+
+---
+
+### Operators
+
+The following operators are currently supported by the lexer and AST:
+
+| Category            | Operators                         | Example        |              |
+| ------------------- | --------------------------------- | -------------- | ------------ |
+| Assignment          | `=`, `+=`, `-=`, `*=`, `/=`, `%=` | `x += 1;`      |              |
+| Arithmetic          | `+`, `-`, `*`, `/`, `%`           | `y = a + b;`   |              |
+| Comparison          | `<`, `>`, `<=`, `>=`, `==`, `!=`  | `if (x >= 10)` |              |
+| Logical             | `!`, `&`, `                       | `, `~`         | `if (!flag)` |
+| Increment/Decrement | `++`, `--`                        | `x++; ++x;`    |              |
+
+---
+
+### Conditionals
+
+Qur supports `if`, `elif`, and `else`.
+Each block must be enclosed in `{}` and the entire statement must end with `;`.
+
+```qur
+if (x == 0) {
+    print("Zero");
+} elif (x == 1) {
+    print("One");
+} else {
+    print("Other");
+};
+```
+
+---
+
+### Loops
+
+#### `for` loops
+
+Qur supports both classic for-loops and iterator style loops.
+
+```qur
+for (int i = 0; i < 3; i++) {
+    print("Count: ${i}");
+};
+```
+
+#### `while` loops
+
+```qur
+int i = 0;
+while (i < 3) {
+    i++;
+};
+```
+
+---
+
+### Function Calls and Return
+
+Function calls can take arguments, and `return` statements may include expressions.
+
+```qur
+fn int add(int x, int y) {
+    return x + y;
+};
+
+fn void main() {
+    int result = add(2, 3);
+    print(result);
+};
+```
+
+---
+
+### Strings and Escape Sequences
+
+String literals support escape sequences and interpolation syntax (`${}`).
+
+```qur
+string msg = "Line 1\nLine 2\tTabbed";
+print(msg);
+
+string name = "Qur";
+print("Hello, ${name}!");
+```
+
+---
+
+### Example: Combined Syntax Test
+
+Below is a sample `gentest.qur` that exercises most supported features:
+
+```qur
+fn void testIncrements() {
+    int x = 0;
+    print("Testing ++ and --");
+    x++;
+    --x;
+    print("Done");
+};
+
+fn void testAssignments() {
+    int a = 5;
+    a += 2;
+    a -= 1;
+    a *= 3;
+    a /= 2;
+    print("Assignments done");
+};
+
 fn int main() {
-    // Conditional for loop
-    // Variable; Condition; Step;
-    for ( int i = 0; i < 10; i++ ) {
-        // Do something
-    };
-    // For each loop
-    list myIntegers(int, 5) = [1, 2, 3, 4, 5]
-    for ( int i -> myIntegers) {
-        // Do do something
-    };
-    // Condition;
-    while ( true ) {
-        // Do Something
-    };
+    testIncrements();
+    testAssignments();
     return 0;
 };
 ```
 
-### Functions, Arguments, and Operators
+---
 
-Functions are declared in the following methods. Functions that have a type must return a value. When a type is not specified the function cannot return any value. Functions must have a body, and cannot be declared in one place and have a body in another. Functions can have the same name and different arguments, so C++ overloading.
+## Building & Running
 
-```qur
-// Integer Function
-fn int func() { return 0; };
+### Prerequisites
 
-// Void Function
-fn func() {};
+* C++17 or later
+
+### Build
+
+```bash
+make
 ```
 
-Operators are required to have at least 1 argument and a return type. With only 1 the value is taken from the right of it, think `! true`. With 2 arguments they are from the left and right, think `0 != 1`. Customer operator functions can be defined with the `op` keyword, the custom operator must be surrounded by \` the insides can be any character set.
+### Run
 
-```qur
-op int `add`(int arg1, int arg2) { return arg1 + arg2; };
-op boolean `not`(boolean arg1) { return !arg1; };
-
-fn main() {
-    int val1 = 0;
-    int val2 = 2;
-    int res = val1 `add` val2;
-    boolean truthy = `not` false;
-    return res; // 2
-};
+```bash
+./compiler -c testcases/gentest.qur
 ```
 
-### Default Libraries
+Output includes:
 
-`io` is a library that provides input for input and output to the command line, though is not essential to import for `print` or `read`, though it will allow for more advanced file io, and control over the cli.
+* Lexical tokens
+* AST representation
+* (Optional) debug parse info
 
-```qur
-import io;
-fn int main() {
-    // Prints to the command line.
-    // Does print a '\n' at the end.
-    print("Hello World!");
-    // If you don't want the '\n', call print() with false as a second argument
-    print("Hello World!", false);
-    // Read always returns a string
-    // argument is the amount of characters returned
-    string userInput = read(5);
-};
-```
+---
 
-`list`, `tuple`, `dict` are included by default, though can be imported for brevity. `list` and `dict` are mutable, `tuple` has mutable values but immutable size. `list` and `tuple` are zero indexed, and use `[]` and `()` respectively. A size can be provided to `list` as shown below, but is not needed. A size must be provided to `tuple` as shown below. `list` and `dict` are dynamically sized. 
+## Project Structure
 
-```qur
-fn int main() {
-    // List size does not need to be provided.
-    list myList(int, 3) = [1, 2, 3]; // myList[1] == 2
-    tuple myTuple(int, 3) = (1, 2, 3); // myTuple(2) == 3
-    dict myDict(int, string) = {0: "zero", 1: "one"}; // myDict{1} == "one"
-    return 0;
-};
-```
-
-### Imports
-
-Importing libraries are essential, done simply with the `import` keyword during the file header. This will import all functions, classes, and interfaces. If the library is not found in the default library location, what is input will be treated as a relative path from where the source file is. Imports do cascade through files, for instance if `myLib` imports `list` then the following will also have `list`.
-
-```qur
-import ./myLib; // Assume this has func1()
-
-fn int main() {
-    int res = func1();
-    return res;
-};
-```
-
-### Comments
-
-Single line comments are the only ones supported as of now. You can be begin a single line comment with `//`.
-
-# TODO: ALL BELOW
-
-Following section is currently theoretical.
-
-### Binary options 
-
-`$ qur [-c (--compile)] file.qur` outputs `file` as an executable
-
-`$ qur -o (--out) file` sets the output file
-
-`$ qur -d (--download) lib` downloads a library, and stores in the default library location
-
-`$ qur -h (-?, --help)` prints help
-
-## Possible additions
-
-- class
-- interfaces
-- structs
-- enumerations
-- unions
-- switch
-- error handling
-- Concurrency primitives ( threads, async, atomic, mutex / locks)
-- system functions
-- splicing
-
-### Classes, Objects, Interfaces
-
-OOP principles are essential. Classes are supported, by default internal variables and methods are private. Only private and public exist, if you inherit from a class you can only see public variables and methods, inheritance from an interface will let you see both public and private. Interface methods must have a body, even if it is overwritten by the child class. Constructors must be public and have the same name as the class, they are defined like a regular function.
-
-```qur
-class myClass {
-    private {
-        // Variables and Members
-    };
-    public {
-        // Variables and Members
-        fn int myClass(int; arg1) { 
-            myVar = arg1;
-            return 0; 
-        };
-        int myVar;
-    };
-};
-
-interface myInterface {
-    private {
-        // Variables and Members
-    };
-    public {
-        // Variables and Members
-    };
-};
-
-class myInheritedClass(myInterface) {
-    // This will have all variables and methods from myInterface.
-};
-
-fn int main() {
-    myClass myObject();
-    print("${myClass.arg1}")
-    return 0;
-};
-```
+| File                  | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| `lexer.h / lexer.cpp` | Lexical analyzer: tokenizes Qur source            |
+| `ast.h / ast.cpp`     | Abstract Syntax Tree builder and node definitions |
+| `qur.cpp`             | Program entry and orchestrator                    |
+| `gentest.qur`         | Sample source code used for demonstration         |
+| `README.md`           | Language syntax guide and usage instructions      |

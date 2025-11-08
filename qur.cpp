@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "utils/lexer.h"
+#include "utils/ast.h"
 
 void debug() {
     std::cout << "Debug Called." << std::endl;
@@ -24,8 +25,37 @@ int main(int argc, char** argv) {
             std::cout << "Bad argument: " << param << ". Skipping.\n";
         }
     }
-    lexer myLexer(inFile);
-    myLexer.getTokens();
-    myLexer.printTokens();
+    try {
+        // Step 1: Lexical Analysis
+        std::cout << "=== Lexical Analysis ===\n";
+        lexer lex(inFile);
+        std::vector<Token> tokens = lex.getTokens();
+        
+        std::cout << "Tokens: ";
+        lex.printTokens();
+        std::cout << "\n\n";
+
+        // Step 2: Build AST
+        std::cout << "=== Building AST ===\n";
+        AST ast(tokens);
+        ast.build();
+        std::cout << "AST built successfully!\n\n";
+
+        // Step 3: Print AST
+        ast.print();
+        std::cout << "\n";
+
+        // Step 4: Code Generation (placeholder)
+        // ast.generateCode();
+    } catch (const lexerError& e) {
+        std::cerr << "Lexer Error: " << e.what() << std::endl;
+        return 1;
+    } catch (const astError& e) {
+        std::cerr << "AST Error: " << e.what() << std::endl;
+        return 1;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
     return 0;
 }

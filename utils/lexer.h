@@ -5,10 +5,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
-
-// Temporary Includes
 #include <iostream>
-
 
 class lexerError : public std::exception {
 private:
@@ -48,10 +45,8 @@ enum class TokenType {
     CONTINUE, // continue
     BREAK, // break
     FUNCTION, // fn
-/* Not implemented in the first interation of this compiler.
     OPERATOR, // op
     IMPORT, // import
-*/
 
     // Specific Types
     LITERAL, // has no way of stating, inferred
@@ -61,18 +56,15 @@ enum class TokenType {
     BOOLEAN, // boolean
     CHAR, // char
     STRING, // string
-/* Not implemented in the first interation of this compiler.
     LIST, // list
     TUPLE, // tuple
     DICT, // dict
     TYPE, // type
-*/
 
     // Operators
     ASSIGN, // =
-/* Not implemented in the first interation of this compiler.
-    SETEACH, // ->
-*/
+    ARROW, // ->
+    
     ADD, // +
     SUB, // -
     MUL, // *
@@ -88,6 +80,13 @@ enum class TokenType {
     AND, // &
     OR, // |
     INVERT, // ~
+    ASSIGN_ADD, // +=
+    ASSIGN_SUB, // -=
+    ASSIGN_MUL, // *=
+    ASSIGN_DIV, // /=
+    ASSIGN_MOD, // %=
+    INCREMENT, // ++
+    DECREMENT, // --
 };
 
 struct Token {

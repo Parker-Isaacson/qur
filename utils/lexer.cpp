@@ -19,6 +19,7 @@ std::string TokenToString(TokenType type) {
         case TokenType::ELSE: return "else";
         case TokenType::FOR: return "for";
         case TokenType::WHILE: return "while";
+        case TokenType::IMPORT: return "import";
         case TokenType::CONTINUE: return "continue";
         case TokenType::BREAK: return "break";
         case TokenType::FUNCTION: return "fn";
@@ -45,6 +46,13 @@ std::string TokenToString(TokenType type) {
         case TokenType::AND: return "&";
         case TokenType::OR: return "|";
         case TokenType::INVERT: return "~";
+        case TokenType::ASSIGN_ADD: return "+=";
+        case TokenType::ASSIGN_SUB: return "-=";
+        case TokenType::ASSIGN_MUL: return "*=";
+        case TokenType::ASSIGN_DIV: return "/=";
+        case TokenType::ASSIGN_MOD: return "%=";
+        case TokenType::INCREMENT:  return "++";
+        case TokenType::DECREMENT:  return "--";
         default: return "UNKNOWN";
     }
 }
@@ -67,6 +75,7 @@ TokenType StringToToken(const std::string& str) {
     if (str == "else") return TokenType::ELSE;
     if (str == "for") return TokenType::FOR;
     if (str == "while") return TokenType::WHILE;
+    if (str == "import") return TokenType::IMPORT;
     if (str == "continue") return TokenType::CONTINUE;
     if (str == "break") return TokenType::BREAK;
     if (str == "fn") return TokenType::FUNCTION;
@@ -93,6 +102,14 @@ TokenType StringToToken(const std::string& str) {
     if (str == "&") return TokenType::AND;
     if (str == "|") return TokenType::OR;
     if (str == "~") return TokenType::INVERT;
+    if (str == "->") return TokenType::ARROW;
+    if (str == "+=") return TokenType::ASSIGN_ADD;
+    if (str == "-=") return TokenType::ASSIGN_SUB;
+    if (str == "*=") return TokenType::ASSIGN_MUL;
+    if (str == "/=") return TokenType::ASSIGN_DIV;
+    if (str == "%=") return TokenType::ASSIGN_MOD;
+    if (str == "++") return TokenType::INCREMENT;
+    if (str == "--") return TokenType::DECREMENT;
     return TokenType::UNKNOWN;
 }
 
@@ -105,11 +122,11 @@ lexer::lexer(const std::string& inFile)
         throw lexerError("Error opening file");
     }
     std::string line;
-    int row = 0;
+    int row = 1;
     while ( std::getline(inStream_, line) ) {
         for (int i = 0; i < line.size(); i++) {
             char c = line[i];
-            int startCol = i;
+            int startCol = i + 1;
             Token t;
             // Whitespace
             if ( std::isspace(c) ) {
@@ -194,8 +211,7 @@ lexer::lexer(const std::string& inFile)
             // Other Tokens
             switch (c) {
                 case '{': case '}': case '(': case ')': case '[': case ']':
-                case ';': case ',': case '.': case '+': case '*': case '%':
-                case '&': case '|': case '~':
+                case ';': case ',': case '.': case '&': case '|': case '~':
                     t = { StringToToken(std::string(1, c)), std::string(1, c), row, startCol };
                     tokens_.push_back(t);
                     break;
@@ -210,13 +226,59 @@ lexer::lexer(const std::string& inFile)
                     tokens_.push_back(t);
                     break;
 
+                case '+':
+                    if (i + 1 < line.size() && line[i + 1] == '=') {
+                        t = { TokenType::ASSIGN_ADD, "+=", row, startCol };
+                        i++;
+                    } else if (i + 1 < line.size() && line[i + 1] == '+') {
+                        t = { TokenType::INCREMENT, "++", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::ADD, "+", row, startCol };
+                    }
+                    tokens_.push_back(t);
+                    break;
+
                 case '-':
-                    t = { TokenType::SUB, "-", row, startCol };
+                    if (i + 1 < line.size() && line[i + 1] == '=') {
+                        t = { TokenType::ASSIGN_SUB, "-=", row, startCol };
+                        i++;
+                    } else if (i + 1 < line.size() && line[i + 1] == '-') {
+                        t = { TokenType::DECREMENT, "--", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::SUB, "-", row, startCol };
+                    }
+                    tokens_.push_back(t);
+                    break;
+
+                case '*':
+                    if (i + 1 < line.size() && line[i + 1] == '=') {
+                        t = { TokenType::ASSIGN_MUL, "*=", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::MUL, "*", row, startCol };
+                    }
                     tokens_.push_back(t);
                     break;
 
                 case '/':
-                    t = { TokenType::DIV, "/", row, startCol };
+                    if (i + 1 < line.size() && line[i + 1] == '=') {
+                        t = { TokenType::ASSIGN_DIV, "/=", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::DIV, "/", row, startCol };
+                    }
+                    tokens_.push_back(t);
+                    break;
+
+                case '%':
+                    if (i + 1 < line.size() && line[i + 1] == '=') {
+                        t = { TokenType::ASSIGN_MOD, "%=", row, startCol };
+                        i++;
+                    } else {
+                        t = { TokenType::MOD, "%", row, startCol };
+                    }
                     tokens_.push_back(t);
                     break;
 
@@ -255,6 +317,7 @@ lexer::lexer(const std::string& inFile)
                     break;
             }
         }
+        row++;
     }
 }
 
