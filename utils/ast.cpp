@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "lexer.h"
 
 // Constructor
 AST::AST(const std::vector<Token>& tokens)
@@ -91,6 +92,11 @@ void AST::build() {
     bool hadError = false;
     
     while (!isAtEnd()) {
+        if (check(TokenType::SEMICOLON) || check(TokenType::RBRACE)) {
+            advance();
+            continue;
+        }
+
         try {
             auto decl = parseDeclaration();
             if (decl) {
@@ -130,11 +136,27 @@ void AST::build() {
 
 // Parse declaration (function or variable)
 std::unique_ptr<astNode> AST::parseDeclaration() {
+    if (check(TokenType::RBRACE) || check(TokenType::SEMICOLON)) {
+        advance();
+        return nullptr;
+    }
     // Function declaration: fn name(...) { ... }
     if (match(TokenType::FUNCTION)) {
         return parseFunction();
     }
     
+    // Import declaration: import ...;
+    if (match(TokenType::IMPORT)) {
+        // Accumulate tokens until semicolon as path
+        std::string path;
+        while (!check(TokenType::SEMICOLON) && !isAtEnd()) {
+            Token t = advance();
+            path += t.lexme;
+        }
+        consume(TokenType::SEMICOLON, "Expected ';' after import");
+        return std::make_unique<importNode>(path);
+    }
+
     // Variable declaration: type name = expr;
     if (check(TokenType::INT) || check(TokenType::DOUBLE) || 
         check(TokenType::CHAR) || check(TokenType::BOOLEAN) || 
@@ -184,6 +206,7 @@ std::unique_ptr<functionNode> AST::parseFunction() {
     
     // Function body
     auto body = parseBody();
+    consume(TokenType::SEMICOLON, "Expected ';' after function body");
     
     return std::make_unique<functionNode>(returnType, name, std::move(params), std::move(body));
 }
@@ -235,8 +258,7 @@ std::unique_ptr<astNode> AST::parseStatement() {
     }
     
     if (match(TokenType::LBRACE)) {
-        current_--; // Put back the brace for parseBody
-        return parseBody();
+        return nullptr;
     }
     
     // Expression statement
@@ -266,16 +288,15 @@ std::unique_ptr<whileNode> AST::parseWhileStatement() {
     consume(TokenType::LPAREN, "Expected '(' after 'while'");
     auto condition = parseExpression();
     consume(TokenType::RPAREN, "Expected ')' after condition");
-    
-    auto body = parseStatement();
-    
+    auto body = parseBody();
+    consume(TokenType::SEMICOLON, "Expected ';' after while body");
     return std::make_unique<whileNode>(std::move(condition), std::move(body));
 }
 
 // Parse for statement
 std::unique_ptr<forNode> AST::parseForStatement() {
     consume(TokenType::LPAREN, "Expected '(' after 'for'");
-    
+
     // Initializer
     std::unique_ptr<astNode> initializer;
     if (match(TokenType::SEMICOLON)) {
@@ -289,25 +310,25 @@ std::unique_ptr<forNode> AST::parseForStatement() {
         consume(TokenType::SEMICOLON, "Expected ';' after for initializer");
         initializer = std::move(expr);
     }
-    
+
     // Condition
     std::unique_ptr<expressionNode> condition = nullptr;
     if (!check(TokenType::SEMICOLON)) {
         condition = parseExpression();
     }
     consume(TokenType::SEMICOLON, "Expected ';' after for condition");
-    
+
     // Increment
     std::unique_ptr<expressionNode> increment = nullptr;
     if (!check(TokenType::RPAREN)) {
         increment = parseExpression();
     }
     consume(TokenType::RPAREN, "Expected ')' after for clauses");
-    
-    auto body = parseStatement();
-    
-    return std::make_unique<forNode>(std::move(initializer), std::move(condition), 
-                                      std::move(increment), std::move(body));
+
+    auto body = parseBody();
+    consume(TokenType::SEMICOLON, "Expected ';' after for body");
+
+    return std::make_unique<forNode>(std::move(initializer), std::move(condition), std::move(increment), std::move(body));
 }
 
 // Parse return statement
@@ -329,6 +350,7 @@ std::unique_ptr<bodyNode> AST::parseBody() {
     std::vector<std::unique_ptr<astNode>> statements;
     
     while (!check(TokenType::RBRACE) && !isAtEnd()) {
+        if (match(TokenType::SEMICOLON)) continue;
         auto stmt = parseDeclaration();
         if (stmt) {
             statements.push_back(std::move(stmt));

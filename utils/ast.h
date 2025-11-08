@@ -208,6 +208,16 @@ struct statementNode : astNode {
     statementNode() { type = astNodeType::STATEMENT; }
 };
 
+
+struct importNode : statementNode {
+    std::string path;
+    explicit importNode(std::string p) : path(std::move(p)) { type = astNodeType::STATEMENT; }
+    void print(int indent = 0) const override {
+        std::cout << std::string(indent, ' ') << "Import(" << path << ")\n";
+    }
+    void generateASM() const override {}
+    std::string describe() const override { return "Import: " + path; }
+};
 struct ifNode : statementNode {
     std::unique_ptr<expressionNode> condition;
     std::unique_ptr<astNode> thenBody;

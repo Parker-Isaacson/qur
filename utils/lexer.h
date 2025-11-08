@@ -45,10 +45,8 @@ enum class TokenType {
     CONTINUE, // continue
     BREAK, // break
     FUNCTION, // fn
-/* Not implemented in the first interation of this compiler.
     OPERATOR, // op
     IMPORT, // import
-*/
 
     // Specific Types
     LITERAL, // has no way of stating, inferred
@@ -67,9 +65,8 @@ enum class TokenType {
 
     // Operators
     ASSIGN, // =
-/* Not implemented in the first interation of this compiler.
-    SETEACH, // ->
-*/
+    ARROW, // ->
+    
     ADD, // +
     SUB, // -
     MUL, // *

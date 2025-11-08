@@ -19,6 +19,7 @@ std::string TokenToString(TokenType type) {
         case TokenType::ELSE: return "else";
         case TokenType::FOR: return "for";
         case TokenType::WHILE: return "while";
+        case TokenType::IMPORT: return "import";
         case TokenType::CONTINUE: return "continue";
         case TokenType::BREAK: return "break";
         case TokenType::FUNCTION: return "fn";
@@ -67,6 +68,7 @@ TokenType StringToToken(const std::string& str) {
     if (str == "else") return TokenType::ELSE;
     if (str == "for") return TokenType::FOR;
     if (str == "while") return TokenType::WHILE;
+    if (str == "import") return TokenType::IMPORT;
     if (str == "continue") return TokenType::CONTINUE;
     if (str == "break") return TokenType::BREAK;
     if (str == "fn") return TokenType::FUNCTION;
@@ -93,6 +95,7 @@ TokenType StringToToken(const std::string& str) {
     if (str == "&") return TokenType::AND;
     if (str == "|") return TokenType::OR;
     if (str == "~") return TokenType::INVERT;
+    if (str == "->") return TokenType::ARROW;
     return TokenType::UNKNOWN;
 }
 
