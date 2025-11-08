@@ -56,12 +56,10 @@ enum class TokenType {
     BOOLEAN, // boolean
     CHAR, // char
     STRING, // string
-/* Not implemented in the first interation of this compiler.
     LIST, // list
     TUPLE, // tuple
     DICT, // dict
     TYPE, // type
-*/
 
     // Operators
     ASSIGN, // =
@@ -82,6 +80,13 @@ enum class TokenType {
     AND, // &
     OR, // |
     INVERT, // ~
+    ASSIGN_ADD, // +=
+    ASSIGN_SUB, // -=
+    ASSIGN_MUL, // *=
+    ASSIGN_DIV, // /=
+    ASSIGN_MOD, // %=
+    INCREMENT, // ++
+    DECREMENT, // --
 };
 
 struct Token {

@@ -206,7 +206,6 @@ std::unique_ptr<functionNode> AST::parseFunction() {
     
     // Function body
     auto body = parseBody();
-    consume(TokenType::SEMICOLON, "Expected ';' after function body");
     
     return std::make_unique<functionNode>(returnType, name, std::move(params), std::move(body));
 }
@@ -257,8 +256,9 @@ std::unique_ptr<astNode> AST::parseStatement() {
         return std::make_unique<continueNode>();
     }
     
-    if (match(TokenType::LBRACE)) {
-        return nullptr;
+    if (check(TokenType::LBRACE)) {
+        auto body = parseBody();
+        return body;
     }
     
     // Expression statement
@@ -371,19 +371,18 @@ std::unique_ptr<expressionNode> AST::parseExpression() {
 std::unique_ptr<expressionNode> AST::parseAssignment() {
     auto expr = parseLogicalOr();
     
-    if (match(TokenType::ASSIGN)) {
+    if (match({TokenType::ASSIGN, TokenType::ASSIGN_ADD, TokenType::ASSIGN_SUB,
+                TokenType::ASSIGN_MUL, TokenType::ASSIGN_DIV, TokenType::ASSIGN_MOD})) {
+        std::string op = previous().lexme;
         auto value = parseAssignment();
-        
-        // Check if left side is a variable
         if (expr->type == astNodeType::VARIABLE) {
             variableNode* varNode = dynamic_cast<variableNode*>(expr.get());
             std::string name = varNode->name;
-            return std::make_unique<assignOpNode>(name, std::move(value));
+            return std::make_unique<assignOpNode>(name, std::move(value), op);
         }
-        
         throw astError("Invalid assignment target");
     }
-    
+
     return expr;
 }
 
@@ -468,12 +467,13 @@ std::unique_ptr<expressionNode> AST::parseMultiplication() {
 
 // Parse unary expressions (!, -, ~)
 std::unique_ptr<expressionNode> AST::parseUnary() {
-    if (match({TokenType::NOT, TokenType::SUB, TokenType::INVERT})) {
+    if (match({TokenType::NOT, TokenType::SUB, TokenType::INVERT,
+                TokenType::INCREMENT, TokenType::DECREMENT})) {
         std::string op = previous().lexme;
         auto right = parseUnary();
         return std::make_unique<unaryOpNode>(op, std::move(right));
     }
-    
+
     return parseCall();
 }
 
@@ -501,11 +501,22 @@ std::unique_ptr<expressionNode> AST::parseCall() {
         return std::make_unique<fnCallNode>(funcName, std::move(args));
     }
     
+    while (match({TokenType::INCREMENT, TokenType::DECREMENT})) {
+        std::string op = previous().lexme;
+        expr = std::make_unique<unaryOpNode>(op + "_postfix", std::move(expr));
+    }
+    
     return expr;
 }
 
 // Parse primary expressions (literals, variables, grouped expressions)
 std::unique_ptr<expressionNode> AST::parsePrimary() {
+    // String literal
+    if (match(TokenType::STRING)) {
+        std::string value = previous().lexme;
+        return std::make_unique<stringLiteralNode>(value);
+    }
+
     // Boolean literals
     if (check(TokenType::IDENTIFIER)) {
         Token t = peek();

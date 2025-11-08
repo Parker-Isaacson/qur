@@ -66,6 +66,18 @@ struct literalNode : expressionNode {
     literalNode() { type = astNodeType::LITERAL; }
 };
 
+struct stringLiteralNode : literalNode {
+    std::string value;
+    explicit stringLiteralNode(std::string v) : value(std::move(v)) {
+        type = astNodeType::LITERAL;
+    }
+    void print(int indent = 0) const override {
+        std::cout << std::string(indent, ' ') << "string(\"" << value << "\")\n";
+    }
+    void generateASM() const override {}
+    std::string describe() const override { return "STRING literal: " + value; }
+};
+
 struct intLiteralNode : literalNode {
     int value;
     explicit intLiteralNode(int v) : value(v) { type = astNodeType::INT; }
@@ -171,18 +183,23 @@ struct binaryOpNode : expressionNode {
 struct assignOpNode : expressionNode {
     std::string targetName;
     std::unique_ptr<expressionNode> value;
+    std::string op; // e.g. '=', '+=', '-=', etc.
 
-    assignOpNode(std::string t, std::unique_ptr<expressionNode> v)
-        : targetName(std::move(t)), value(std::move(v)) {
+    assignOpNode(std::string t, std::unique_ptr<expressionNode> v, std::string o = "=")
+        : targetName(std::move(t)), value(std::move(v)), op(std::move(o)) {
         type = astNodeType::ASSIGNOP;
     }
 
     void print(int indent = 0) const override {
-        std::cout << std::string(indent, ' ') << "AssignOp(\"" << targetName << "\")\n";
+        std::cout << std::string(indent, ' ')
+                  << "AssignOp(target=\"" << targetName << "\", op=\"" << op << "\")\n";
         if (value) value->print(indent + 2);
     }
+
     void generateASM() const override {}
-    std::string describe() const override { return "Assignment to: " + targetName; }
+    std::string describe() const override { 
+        return "Assignment (" + op + ") to: " + targetName; 
+    }
 };
 
 struct fnCallNode : expressionNode {
